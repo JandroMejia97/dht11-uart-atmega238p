@@ -6,7 +6,8 @@
  */ 
 
 #include <avr/io.h>
-
+#include <util/delay.h>
+#include "dht.c"
 
 int main(void)
 {

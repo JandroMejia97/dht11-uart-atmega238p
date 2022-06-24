@@ -28,6 +28,7 @@ void menu_update(){
 		UART_write_string_buffer((uint8_t*)"Encendido\n\r");
 		hay_para_transmitir = 1;
 		//FUNCION DEL DHT
+		UART_write_string_buffer((uint8_t*)dht_get_temperature());
 	}
 	else {
 		if (strcmp((const char*)cadena,(const char*)"OFF")==0){

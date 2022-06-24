@@ -9,9 +9,9 @@
 #ifndef INCFILE1_H_
 #define INCFILE1_H_
 
-	#include "main.h"
 	#include <stdint.h>
 	#include <avr/io.h>
+	#include <avr/interrupt.h>
 	
 	#define RX_BUFFER_LENGHT 6
 	#define TX_BUFFER_LENGHT 200

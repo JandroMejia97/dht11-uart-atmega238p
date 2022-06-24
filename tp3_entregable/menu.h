@@ -12,9 +12,10 @@
 	#include "main.h"
 	#include "stdint.h"
 	#include "string.h"
+	#include <avr/io.h>
 	
 	void menu_show(void);
 	void menu_update(void);
-	void set_hay_para_transmitir(unsigned valor);
+	void set_hay_para_transmitir(uint8_t valor);
 
 #endif /* INCFILE1_H_ */

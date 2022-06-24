@@ -6,13 +6,11 @@
  */ 
 #include "UART.h"
 
-static uint8_t BUFFER_RX[RX_BUFFER_LENGHT]; //Buffer para la recepcion
-static uint8_t BUFFER_TX[TX_BUFFER_LENGHT]; //Buffer para la transmision
-static uint8_t indiceTX_escritura= 0; //Indice de escritura para el buffer de
-transmision
-static uint8_t indiceTX_lectura= 0; //Indice de lectura para el buffer de
-transmision
-static uint8_t se_apreto_enter= 0; //Flag de si el usuario apreto ENTER
+static volatile uint8_t BUFFER_RX[RX_BUFFER_LENGHT]; //Buffer para la recepcion
+static volatile uint8_t BUFFER_TX[TX_BUFFER_LENGHT]; //Buffer para la transmision
+static volatile uint8_t indiceTX_escritura= 0; //Indice de escritura para el buffer de transmision
+static volatile uint8_t indiceTX_lectura= 0; //Indice de lectura para el buffer de transmision
+static volatile uint8_t se_apreto_enter= 0; //Flag de si el usuario apreto ENTER
 
 void UART_init(uint8_t config)
 {

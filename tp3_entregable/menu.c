@@ -25,13 +25,13 @@ void menu_update(){
 	uint8_t cadena[6]="";
 	UART_get_string_from_buffer(cadena);
 	if (strcmp((const char*)cadena,(const char*)"ON")==0){
-		UART_write_string_buffer((uint8_t char*)"Encendido\n\r");
+		UART_write_string_buffer((uint8_t*)"Encendido\n\r");
 		hay_para_transmitir = 1;
 		//FUNCION DEL DHT
 	}
 	else {
 		if (strcmp((const char*)cadena,(const char*)"OFF")==0){
-			UART_write_string_buffer((uint8_t char*)"Apagado\n\r");
+			UART_write_string_buffer((uint8_t*)"Apagado\n\r");
 			hay_para_transmitir = 1;
 			//FUNCION DEL DHT
 		}

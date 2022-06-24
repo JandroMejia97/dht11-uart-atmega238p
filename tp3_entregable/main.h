@@ -13,6 +13,7 @@
 	#include <avr/interrupt.h>
 	#include "UART.h"
 	#include "menu.h"
-	#include "Timer1.h"
+	#include "dht.h"
+	//#include "Timer1.h"
 
 #endif /* INCFILE1_H_ */

@@ -47,7 +47,7 @@ void dht_wait_for_response() {
   uint8_t retries = 0;
   DDRB &= ~(1 << DHT_PIN); // Set pin as input
   // Wait for a zero on the DHT_PIN port (20-40us)
-  while (PIND & (1 << DHT_PIN)) {
+  while (PINB & (1 << DHT_PIN)) {
     retries += 2;
     _delay_ms(DHT11_DELAY_RETRY_MS);
 
@@ -60,7 +60,7 @@ void dht_wait_for_response() {
   if (DHT_State == OK) {
     // Wait for a one on the DHT_PIN port (low for ~80us)
     retries = 0;
-    while (!(PIND & (1 << DHT_PIN))) {
+    while (!(PINB & (1 << DHT_PIN))) {
       retries += 2;
       _delay_ms(DHT11_DELAY_RETRY_MS);
 
@@ -72,7 +72,7 @@ void dht_wait_for_response() {
 
     // Wait for a zero on the DHT_PIN port (high for ~80us)
     retries = 0;
-    while (PIND & (1 << DHT_PIN)) {
+    while (PINB & (1 << DHT_PIN)) {
       retries += 2;
       _delay_ms(DHT11_DELAY_RETRY_MS);
 
@@ -94,7 +94,7 @@ uint8_t dht_receive_data() {
   for (i = 7; i >= 0; i--) {
     retries = 0;
     // There is always a zero on the DHT_PIN port for 50us
-    while (!(PIND & (1 << DHT_PIN))) {
+    while (!(PINB & (1 << DHT_PIN))) {
       retries += 2;
       _delay_ms(DHT11_DELAY_RETRY_MS);
 
@@ -108,12 +108,12 @@ uint8_t dht_receive_data() {
     if (DHT_State == OK) {
       // Reading the data. 26-28us means a zero, 70us means a one
       _delay_ms(DHT11_DELAY_FOR_ZERO);
-      if (PIND & (1 << DHT_PIN)) {
+      if (PINB & (1 << DHT_PIN)) {
         data |= (1 << i);
       }
 
       retries = 0;
-      while (PIND & (1 << DHT_PIN)) {
+      while (PINB & (1 << DHT_PIN)) {
         retries += 2;
         _delay_ms(DHT11_DELAY_RETRY_MS);
         if (retries > DHT11_RESPONSE_MAX_RETRIES) {

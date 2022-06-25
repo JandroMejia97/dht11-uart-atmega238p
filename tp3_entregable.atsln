@@ -9,6 +9,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		tp3_entregable\dht.c = tp3_entregable\dht.c
 		tp3_entregable\dht.h = tp3_entregable\dht.h
+		tp3_entregable\main.c = tp3_entregable\main.c
+		tp3_entregable\main.h = tp3_entregable\main.h
+		tp3_entregable\menu.c = tp3_entregable\menu.c
+		tp3_entregable\menu.h = tp3_entregable\menu.h
+		tp3_entregable\UART.c = tp3_entregable\UART.c
+		tp3_entregable\UART.h = tp3_entregable\UART.h
 	EndProjectSection
 EndProject
 Global

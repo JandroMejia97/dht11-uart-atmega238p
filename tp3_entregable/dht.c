@@ -34,10 +34,10 @@ enum DHT_Status dht_get_status() {
  * @brief Requests the sensor to start measuring.
  */
 void dht_request_data() {
-  DDRD |= (1 << DHT_PIN); // Set pin as output
-  PORTD &= ~(1 << DHT_PIN); // Put a zero on the DHT_PIN port
+  DDRB |= (1 << DHT_PIN); // Set pin as output
+  PORTB &= ~(1 << DHT_PIN); // Put a zero on the DHT_PIN port
   _delay_ms(DHT_READ_INTERVAL_MS);
-  PORTD |= (1 << DHT_PIN); // Put a one on the DHT_PIN port
+  PORTB |= (1 << DHT_PIN); // Put a one on the DHT_PIN port
 }
 
 /**
@@ -45,7 +45,7 @@ void dht_request_data() {
  */
 void dht_wait_for_response() {
   uint8_t retries = 0;
-  DDRD &= ~(1 << DHT_PIN); // Set pin as input
+  DDRB &= ~(1 << DHT_PIN); // Set pin as input
   // Wait for a zero on the DHT_PIN port (20-40us)
   while (PIND & (1 << DHT_PIN)) {
     retries += 2;

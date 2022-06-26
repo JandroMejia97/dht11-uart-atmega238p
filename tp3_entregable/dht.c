@@ -2,6 +2,7 @@
 
 enum DHT_Status DHT_State;
 
+#define DHT_PIN 1
 #define DHT11_MIN_TEMP                0
 #define DHT11_MAX_TEMP               50
 #define DHT11_MIN_HUM                20

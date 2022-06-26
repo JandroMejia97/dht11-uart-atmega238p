@@ -6,7 +6,11 @@
 
 #define DHT_READ_INTERVAL_MS 100
 #define DHT_DELAY_SETUP_MS 2000
+
+#ifndef DHT_PIN
+# warning "DHT_PIN not defined for DHT library. Using 7 as default."
 #define DHT_PIN 7
+#endif
 
 enum DHT_Status {
   OK,

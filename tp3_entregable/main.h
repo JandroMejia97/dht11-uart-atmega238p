@@ -15,6 +15,5 @@
 	#include "UART.h"
 	#include "menu.h"
 	#include "dht.h"
-	//#include "Timer1.h"
 
 #endif

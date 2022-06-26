@@ -1,201 +1,60 @@
+#define F_CPU 16000000UL
+#define DHT11_PIN PINC0
 #include "dht.h"
+#include "utils.h"
 
-enum DHT_Status DHT_State;
-
-#define DHT11_MIN_TEMP                0
-#define DHT11_MAX_TEMP               50
-#define DHT11_MIN_HUM                20
-#define DHT11_MAX_HUM                90
-#define DHT11_DELAY                  50
-#define DHT11_MAX_RETRIES            60
-#define DHT11_AWAIT_MAX_RETRIES      50
-#define DHT11_INIT_MAX_RETRIES       70
-#define DHT11_DELAY_FOR_ZERO         35
-#define DHT11_RESPONSE_MAX_RETRIES  100
-#define DHT11_DELAY_FOR_READ_MS      20
-#define DHT11_DELAY_RETRY_US          2
-
-/**
- * @brief Initializes the DHT11 sensor.
- */
-void dht_init(void) {
-  _delay_ms(DHT_DELAY_SETUP_MS);
-  DHT_State = OK;
+uint8_t data[5];
+void DHT11_start(){
+	DDRC |= (1<<DHT11_PIN);
+	PORTC &= ~(1<<DHT11_PIN);	/* set to low pin */
+	_delay_ms(20);			/* wait for 20ms */
+	PORTC |= (1<<DHT11_PIN);	/* set to high pin */
 }
 
-/**
- * @brief Reads the state of the DHT11 sensor
- * 
- * @return enum DHT_Status 
- */
-enum DHT_Status dht_get_status() {
-  return DHT_State;
+void DHT11_response(){
+	DDRC &= ~(1<<DHT11_PIN);
+	while(PINC & (1<<DHT11_PIN));
+	while((PINC & (1<<DHT11_PIN))==0);
+	while(PINC & (1<<DHT11_PIN));
 }
 
-/**
- * @brief Requests the sensor to start measuring.
- */
-void dht_request_data() {
-  DDRC |= (1 << DHT_PIN); // Set pin as output
-  PORTC &= ~(1 << DHT_PIN); // Put a zero on the DHT_PIN port
-  _delay_ms(DHT11_DELAY_FOR_READ_MS);
-  PORTC |= (1 << DHT_PIN); // Put a one on the DHT_PIN port
+uint8_t DHT11_read_byte(){
+	uint8_t data = 0;
+	for(int i=0;i<8;i++){
+		while((PINC & (1<<DHT11_PIN)) == 0);  /* check received bit 0 or 1 */
+		_delay_us(30); //dht holds high 28us for 0
+		if(PINC & (1<<DHT11_PIN)){  //dht high
+			data = ((data<<1) | 1);
+		}
+		else{
+			data = (data<<1);
+		}
+		while(PINC & (1<<DHT11_PIN));
+	}
+	return data;
 }
 
-/**
- * @brief Waits for the sensor to respond.
- */
-void dht_wait_for_response() {
-  uint8_t retries = 0;
-  DDRC &= ~(1 << DHT_PIN); // Set pin as input
-  // Wait for a zero on the DHT_PIN port (20-40us)
-  while (PINC & (1 << DHT_PIN));
-
-  // Wait for a one on the DHT_PIN port (low for ~80us)
-  retries = 0;
-  while ((PINC & (1 << DHT_PIN)) == 0) {
-    _delay_us(DHT11_DELAY_RETRY_US);
-    retries += 2;
-
-    if (retries > DHT11_RESPONSE_MAX_RETRIES) {
-      DHT_State = TIMEOUT;
-      break;
-    }
-  }
-
-  // Wait for a zero on the DHT_PIN port (high for ~80us)
-  retries = 0;
-  while (PINC & (1 << DHT_PIN)) {
-    _delay_us(DHT11_DELAY_RETRY_US);
-    retries += 2;
-
-    if (retries > DHT11_RESPONSE_MAX_RETRIES) {
-      DHT_State = TIMEOUT;
-      break;
-    }
-  }
-}
-
-/**
- * @brief Reads the data from the sensor.
- * 
- * @return uint8_t - The data read from the sensor.
- */
-uint8_t dht_receive_data() {
-  uint8_t i, data = 0, retries;
-  for (i = 7; i >= 0; i--) {
-    retries = 0;
-    // There is always a zero on the DHT_PIN port for 50us
-    while ((PINC & (1 << DHT_PIN)) == 0) {
-      _delay_us(DHT11_DELAY_RETRY_US);
-      retries += 2;
-
-      if (retries > DHT11_INIT_MAX_RETRIES) {
-        DHT_State = TIMEOUT;
-        i = -1;  // break the outer loop
-        break;  // break while loop
-      }
-    }
-
-    if (DHT_State == OK) {
-      // Reading the data. 26-28us means a zero, 70us means a one
-      _delay_us(DHT11_DELAY_FOR_ZERO);
-      if (PINC & (1 << DHT_PIN)) {
-        data |= (1 << i);
-      }
-
-      retries = 0;
-      while (PINC & (1 << DHT_PIN)) {
-        _delay_us(DHT11_DELAY_RETRY_US);
-        retries += 2;
-
-        if (retries > DHT11_RESPONSE_MAX_RETRIES) {
-          DHT_State = TIMEOUT;
-          break;  // break while loop
-        }
-      }
-    }
-  }
-  return data;
-}
-
-/**
- * @brief Reads the temperature and humidity from the sensor.
- * 
- * @param data - The data read from the sensor.
- * @return enum DHT_Status - The status of the sensor.
- */
-enum DHT_Status dht_read_raw_data(DHT_Data_t data) {
-  uint8_t buffer[5] = {0, 0, 0, 0, 0};
-  uint8_t i = 0;
-  DHT_State = OK;
-
-  if (DHT_State == OK) {
-    DHT_State = OK;
-    dht_request_data();
-    dht_wait_for_response();
-  }
-
-  if (DHT_State == OK) {
-    // Read 5 bytes of data
-    for (i = 0; i < 5; i++) {
-      buffer[i] = dht_receive_data();
-      if (DHT_State == TIMEOUT) {
-        i = 5;
-      }
-    }
-  }
-
-  if (DHT_State == OK) {
-    // Check the checksum
-    if ((uint8_t)(buffer[0] + buffer[1] + buffer[2] + buffer[3]) != buffer[4]) {
-      DHT_State = CHECKSUM_ERROR;
-    } else {
-      // Convert the data
-      data.humidity = buffer[0] + buffer[1];
-      data.temperature = (buffer[2] & 0x7F) + ((buffer[3] & 0x80) >> 7);
-    }
-
-  }
-
-  return dht_get_status();
-}
-
-/**
- * @brief Reads the temperature and humidity from the sensor.
- * 
- * @param data - The data read from the sensor.
- * @return enum DHT_Status - The status of the sensor.
- */
-enum DHT_Status dht_read(DHT_Data_t data) {
-  enum DHT_Status status = dht_read_raw_data(data);
-  if (status == OK) {
-    data.temperature = (data.temperature * 9 / 5) + 32;
-    if (data.temperature < DHT11_MIN_TEMP || data.temperature > DHT11_MAX_TEMP) {
-      status = TEMPERATURE_ERROR;
-    }
-    data.humidity = (data.humidity * 100) / 256;
-    if (data.humidity < DHT11_MIN_HUM || data.humidity > DHT11_MAX_HUM) {
-      status = HUMIDITY_ERROR;
-    }
-  }
-  return status;
-}
-
-enum DHT_Status dht_get_temperature(float *temperature) {
-  DHT_Data_t data;
-  enum DHT_Status status = dht_read(data);
-  if (status == OK) {
-    *temperature = data.temperature;
-  }
-  return status;
-}
-
-enum DHT_Status dht_get_humidity(float *humidity) {
-  DHT_Data_t data;
-  enum DHT_Status status = dht_read(data);
-  if (status == OK) {
-    *humidity = data.humidity;
-  }
-  return status;
+uint8_t DHT11_read_data(char* hum, char* temp){
+	uint8_t checksum = 0;
+	DHT11_start();
+	DHT11_response();
+	data[0] = DHT11_read_byte();   //humedad int
+	data[1] = DHT11_read_byte();   //humedad dec
+	data[2] = DHT11_read_byte();   //temp int
+	data[3] = DHT11_read_byte();   //temp dec
+	data[4] = DHT11_read_byte();   //checksum
+	checksum = data[0] + data[1] + data[2] + data[3];
+	//end listening
+	
+	DDRC |= 1<<DHT11_PIN;
+	PORTC |= 1<<DHT11_PIN;
+	
+	if (checksum == data[4]){
+		sprintf(hum, "%2d.%1d",data[0],data[1]);
+		sprintf(temp, "%2d.%1d",data[2],data[3]);
+		return 1;
+	}
+	else{
+		return 0;
+	}
 }

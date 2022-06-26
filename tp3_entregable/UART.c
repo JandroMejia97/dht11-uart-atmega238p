@@ -5,12 +5,19 @@
  *  Author: Fran
  */ 
 #include "UART.h"
+#include "dht.h"
+#include "menu.h"
 
 static volatile uint8_t BUFFER_RX[RX_BUFFER_LENGHT]; //Buffer para la recepcion
 static volatile uint8_t BUFFER_TX[TX_BUFFER_LENGHT]; //Buffer para la transmision
 static volatile uint8_t indiceTX_escritura= 0; //Indice de escritura para el buffer de transmision
 static volatile uint8_t indiceTX_lectura= 0; //Indice de lectura para el buffer de transmision
 static volatile uint8_t se_apreto_enter= 0; //Flag de si el usuario apreto ENTER
+volatile unsigned char flag_hora = 0;
+static unsigned char cont_hora = 0;
+char hum [5];
+char temp [5];
+
 
 void UART_init(uint8_t config)
 {
@@ -22,6 +29,10 @@ void UART_init(uint8_t config)
 	UCSR0B |= (1<<TXEN0); //Activa la UART para transmision
 	UCSR0B |= (1<<RXEN0); //Activa la UART para recepcion
 	UCSR0B |= (1<<RXCIE0); //Activa las interrupciones de recepcion
+	TCCR1B |= (1 << WGM12);				// Modo CTC con OCR1A
+	TCCR1B |= (1 << CS12);				// Prescaler = F_CPU/256
+	OCR1A = 3125;						// seteo el contador en 3125
+	TIMSK1 |= (1 << OCIE1A);			// habilito interrupci n del contador OCR1A
 	sei();
 }
 
@@ -66,6 +77,27 @@ void UART_get_string_from_buffer(uint8_t * cadena) //Funcion que retorna la cade
 	}
 }
 
+void SEOS_Schedule_Tasks(void)
+{
+	if (++cont_hora == 20) { // Cada 1 segundo
+		flag_hora = 1;
+		cont_hora = 0;
+	}
+}
+
+
+void SEOS_Dispatch_Tasks (void) {
+	if ((flag_hora)&&(imprimo_flag())) {
+		DHT11_read_data(hum,temp);
+		UART_write_string_buffer((uint8_t*)hum);
+		UART_write_string_buffer("\n\r");
+		UART_write_string_buffer((uint8_t*)temp);
+		UART_write_string_buffer("\n\r");
+		UART_TX_Interrupt_Enable();
+		flag_hora = 0;
+	}
+}
+
 ISR(USART_RX_vect){
 	static uint8_t i = 0;
 	BUFFER_RX[i] = UDR0;
@@ -97,6 +129,11 @@ ISR(USART_UDRE_vect) //Interrupcion de que se puede transmitir en la UART
 	}
 }
 
+ISR (TIMER1_COMPA_vect)
+{
+	SEOS_Schedule_Tasks();
+}
+
 uint8_t get_se_apreto_enter(void) //Esta funcion devuelve el valor del flag de si se apreto ENTER
 {
 	return se_apreto_enter;
@@ -104,4 +141,4 @@ uint8_t get_se_apreto_enter(void) //Esta funcion devuelve el valor del flag de s
 void set_se_apreto_enter(uint8_t valor) //Esta funcion setea el valor del flag de si se apreto ENTER por el valor pasado en la funcion
 {
 	se_apreto_enter= valor;
-}
+}

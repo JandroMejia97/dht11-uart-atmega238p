@@ -12,10 +12,11 @@ int main(void)
 {
 	UART_init(0x33);
 	menu_show();	//Imprimir mensaje de bienvenida y menú
-	dht_init();	//Inicializar sensor DHT11
+	DHT11_start();	//Inicializar sensor DHT11
 	//timer_init();
     while (1) 
     {
+		SEOS_Dispatch_Tasks();
 		if (get_se_apreto_enter()){
 			menu_update();
 			set_se_apreto_enter(0);

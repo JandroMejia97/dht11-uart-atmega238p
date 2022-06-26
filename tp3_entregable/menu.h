@@ -6,10 +6,9 @@
  */ 
 
 
-#ifndef INCFILE1_H_
-#define INCFILE1_H_
+#ifndef MENU_H_
+#define MENU_H_
 
-	#include "main.h"
 	#include "stdint.h"
 	#include "string.h"
 	#include <avr/io.h>
@@ -17,5 +16,6 @@
 	void menu_show(void);
 	void menu_update(void);
 	void set_hay_para_transmitir(uint8_t valor);
+	uint8_t get_hay_para_transmitir(void);
 
-#endif /* INCFILE1_H_ */
+#endif

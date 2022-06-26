@@ -6,8 +6,8 @@
  */ 
 
 
-#ifndef INCFILE1_H_
-#define INCFILE1_H_
+#ifndef UART_H_
+#define UART_H_
 
 	#include <stdint.h>
 	#include <avr/io.h>
@@ -25,4 +25,4 @@
 	uint8_t get_se_apreto_enter(void);
 	void set_se_apreto_enter(uint8_t valor);
 
-#endif /* INCFILE1_H_ */
+#endif

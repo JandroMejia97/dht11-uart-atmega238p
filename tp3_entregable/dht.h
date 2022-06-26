@@ -1,5 +1,10 @@
-#ifndef DHT_H
-#define DHT_H
+#ifndef DHT_H_
+#define DHT_H_
+
+
+#ifndef F_CPU
+#define F_CPU 16000000UL
+#endif
 
 #include <util/delay.h>
 #include <avr/io.h>
@@ -8,8 +13,8 @@
 #define DHT_DELAY_SETUP_MS 2000
 
 #ifndef DHT_PIN
-# warning "DHT_PIN not defined for DHT library. Using 7 as default."
-#define DHT_PIN 7
+# warning "DHT_PIN not defined for DHT library. Using 1 as default."
+#define DHT_PIN 1
 #endif
 
 enum DHT_Status {

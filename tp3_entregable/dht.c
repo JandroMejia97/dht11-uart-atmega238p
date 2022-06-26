@@ -13,7 +13,7 @@ enum DHT_Status DHT_State;
 #define DHT11_INIT_MAX_RETRIES       70
 #define DHT11_DELAY_FOR_ZERO         35
 #define DHT11_RESPONSE_MAX_RETRIES  100
-#define DHT11_DELAY_FOR_READ_MS      50
+#define DHT11_DELAY_FOR_READ_MS      20
 #define DHT11_DELAY_RETRY_US          2
 
 /**
@@ -41,6 +41,7 @@ void dht_request_data() {
   PORTB &= ~(1 << DHT_PIN); // Put a zero on the DHT_PIN port
   _delay_ms(DHT11_DELAY_FOR_READ_MS);
   PORTB |= (1 << DHT_PIN); // Put a one on the DHT_PIN port
+  DDRB &= ~(1 << DHT_PIN); // Set pin as input
 }
 
 /**
@@ -48,7 +49,6 @@ void dht_request_data() {
  */
 void dht_wait_for_response() {
   uint8_t retries = 0;
-  DDRB &= ~(1 << DHT_PIN); // Set pin as input
   // Wait for a zero on the DHT_PIN port (20-40us)
   while (PINB & (1 << DHT_PIN)) {
     retries += 2;

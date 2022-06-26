@@ -12,6 +12,7 @@ int main(void)
 {
 	UART_init(0x33);
 	menu_show();	//Imprimir mensaje de bienvenida y menú
+	dht_init();	//Inicializar sensor DHT11
 	//timer_init();
     while (1) 
     {

@@ -8,11 +8,13 @@ enum DHT_Status DHT_State;
 #define DHT11_MIN_HUM                20
 #define DHT11_MAX_HUM                90
 #define DHT11_DELAY                  50
+#define DHT11_MAX_RETRIES            60
 #define DHT11_AWAIT_MAX_RETRIES      50
 #define DHT11_INIT_MAX_RETRIES       70
 #define DHT11_DELAY_FOR_ZERO         35
 #define DHT11_RESPONSE_MAX_RETRIES  100
-#define DHT11_DELAY_RETRY_MS          2
+#define DHT11_DELAY_FOR_READ_MS      50
+#define DHT11_DELAY_RETRY_US          2
 
 /**
  * @brief Initializes the DHT11 sensor.
@@ -37,7 +39,7 @@ enum DHT_Status dht_get_status() {
 void dht_request_data() {
   DDRB |= (1 << DHT_PIN); // Set pin as output
   PORTB &= ~(1 << DHT_PIN); // Put a zero on the DHT_PIN port
-  _delay_us(DHT_READ_INTERVAL_MS);
+  _delay_ms(DHT11_DELAY_FOR_READ_MS);
   PORTB |= (1 << DHT_PIN); // Put a one on the DHT_PIN port
 }
 
@@ -50,9 +52,9 @@ void dht_wait_for_response() {
   // Wait for a zero on the DHT_PIN port (20-40us)
   while (PINB & (1 << DHT_PIN)) {
     retries += 2;
-    _delay_us(DHT11_DELAY_RETRY_MS);
+    _delay_us(DHT11_DELAY_RETRY_US);
 
-    if (retries > DHT11_AWAIT_MAX_RETRIES) {
+    if (retries > DHT11_MAX_RETRIES) {
       DHT_State = TIMEOUT;
       break;
     }
@@ -63,7 +65,7 @@ void dht_wait_for_response() {
     retries = 0;
     while (!(PINB & (1 << DHT_PIN))) {
       retries += 2;
-      _delay_us(DHT11_DELAY_RETRY_MS);
+      _delay_us(DHT11_DELAY_RETRY_US);
 
       if (retries > DHT11_RESPONSE_MAX_RETRIES) {
         DHT_State = TIMEOUT;
@@ -75,7 +77,7 @@ void dht_wait_for_response() {
     retries = 0;
     while (PINB & (1 << DHT_PIN)) {
       retries += 2;
-      _delay_us(DHT11_DELAY_RETRY_MS);
+      _delay_us(DHT11_DELAY_RETRY_US);
 
       if (retries > DHT11_RESPONSE_MAX_RETRIES) {
         DHT_State = TIMEOUT;
@@ -97,7 +99,7 @@ uint8_t dht_receive_data() {
     // There is always a zero on the DHT_PIN port for 50us
     while (!(PINB & (1 << DHT_PIN))) {
       retries += 2;
-      _delay_us(DHT11_DELAY_RETRY_MS);
+      _delay_us(DHT11_DELAY_RETRY_US);
 
       if (retries > DHT11_INIT_MAX_RETRIES) {
         DHT_State = TIMEOUT;
@@ -116,7 +118,7 @@ uint8_t dht_receive_data() {
       retries = 0;
       while (PINB & (1 << DHT_PIN)) {
         retries += 2;
-        _delay_us(DHT11_DELAY_RETRY_MS);
+        _delay_us(DHT11_DELAY_RETRY_US);
         if (retries > DHT11_RESPONSE_MAX_RETRIES) {
           DHT_State = TIMEOUT;
           break;  // break while loop

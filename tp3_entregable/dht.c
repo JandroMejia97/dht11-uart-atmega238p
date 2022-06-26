@@ -50,39 +50,29 @@ void dht_request_data() {
 void dht_wait_for_response() {
   uint8_t retries = 0;
   // Wait for a zero on the DHT_PIN port (20-40us)
-  while (PINB & (1 << DHT_PIN)) {
-    retries += 2;
-    _delay_us(DHT11_DELAY_RETRY_US);
+  while (PINB & (1 << DHT_PIN));
 
-    if (retries > DHT11_MAX_RETRIES) {
+  // Wait for a one on the DHT_PIN port (low for ~80us)
+  retries = 0;
+  while ((PINB & (1 << DHT_PIN)) == 0) {
+    _delay_us(DHT11_DELAY_RETRY_US);
+    retries += 2;
+
+    if (retries > DHT11_RESPONSE_MAX_RETRIES) {
       DHT_State = TIMEOUT;
       break;
     }
   }
 
-  if (DHT_State == OK) {
-    // Wait for a one on the DHT_PIN port (low for ~80us)
-    retries = 0;
-    while (!(PINB & (1 << DHT_PIN))) {
-      retries += 2;
-      _delay_us(DHT11_DELAY_RETRY_US);
+  // Wait for a zero on the DHT_PIN port (high for ~80us)
+  retries = 0;
+  while (PINB & (1 << DHT_PIN)) {
+    _delay_us(DHT11_DELAY_RETRY_US);
+    retries += 2;
 
-      if (retries > DHT11_RESPONSE_MAX_RETRIES) {
-        DHT_State = TIMEOUT;
-        break;
-      }
-    }
-
-    // Wait for a zero on the DHT_PIN port (high for ~80us)
-    retries = 0;
-    while (PINB & (1 << DHT_PIN)) {
-      retries += 2;
-      _delay_us(DHT11_DELAY_RETRY_US);
-
-      if (retries > DHT11_RESPONSE_MAX_RETRIES) {
-        DHT_State = TIMEOUT;
-        break;
-      }
+    if (retries > DHT11_RESPONSE_MAX_RETRIES) {
+      DHT_State = TIMEOUT;
+      break;
     }
   }
 }
@@ -98,8 +88,8 @@ uint8_t dht_receive_data() {
     retries = 0;
     // There is always a zero on the DHT_PIN port for 50us
     while (!(PINB & (1 << DHT_PIN))) {
-      retries += 2;
       _delay_us(DHT11_DELAY_RETRY_US);
+      retries += 2;
 
       if (retries > DHT11_INIT_MAX_RETRIES) {
         DHT_State = TIMEOUT;
@@ -117,8 +107,9 @@ uint8_t dht_receive_data() {
 
       retries = 0;
       while (PINB & (1 << DHT_PIN)) {
-        retries += 2;
         _delay_us(DHT11_DELAY_RETRY_US);
+        retries += 2;
+
         if (retries > DHT11_RESPONSE_MAX_RETRIES) {
           DHT_State = TIMEOUT;
           break;  // break while loop

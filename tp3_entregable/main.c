@@ -5,7 +5,7 @@
  * Author : Alejandro Mejía
  */ 
 #define F_CPU 16000000UL
-#define DHT_PIN 1
+#define DHT_PIN 0
 #include "main.h"
 
 int main(void)

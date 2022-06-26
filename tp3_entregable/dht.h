@@ -14,7 +14,7 @@
 
 #ifndef DHT_PIN
 # warning "DHT_PIN not defined for DHT library. Using 1 as default."
-#define DHT_PIN 1
+#define DHT_PIN 0
 #endif
 
 enum DHT_Status {

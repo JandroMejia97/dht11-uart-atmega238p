@@ -36,10 +36,10 @@ enum DHT_Status dht_get_status() {
  * @brief Requests the sensor to start measuring.
  */
 void dht_request_data() {
-  DDRB |= (1 << DHT_PIN); // Set pin as output
-  PORTB &= ~(1 << DHT_PIN); // Put a zero on the DHT_PIN port
+  DDRC |= (1 << DHT_PIN); // Set pin as output
+  PORTC &= ~(1 << DHT_PIN); // Put a zero on the DHT_PIN port
   _delay_ms(DHT11_DELAY_FOR_READ_MS);
-  PORTB |= (1 << DHT_PIN); // Put a one on the DHT_PIN port
+  PORTC |= (1 << DHT_PIN); // Put a one on the DHT_PIN port
 }
 
 /**
@@ -47,13 +47,13 @@ void dht_request_data() {
  */
 void dht_wait_for_response() {
   uint8_t retries = 0;
-  DDRB &= ~(1 << DHT_PIN); // Set pin as input
+  DDRC &= ~(1 << DHT_PIN); // Set pin as input
   // Wait for a zero on the DHT_PIN port (20-40us)
-  while (PINB & (1 << DHT_PIN));
+  while (PINC & (1 << DHT_PIN));
 
   // Wait for a one on the DHT_PIN port (low for ~80us)
   retries = 0;
-  while ((PINB & (1 << DHT_PIN)) == 0) {
+  while ((PINC & (1 << DHT_PIN)) == 0) {
     _delay_us(DHT11_DELAY_RETRY_US);
     retries += 2;
 
@@ -65,7 +65,7 @@ void dht_wait_for_response() {
 
   // Wait for a zero on the DHT_PIN port (high for ~80us)
   retries = 0;
-  while (PINB & (1 << DHT_PIN)) {
+  while (PINC & (1 << DHT_PIN)) {
     _delay_us(DHT11_DELAY_RETRY_US);
     retries += 2;
 
@@ -86,7 +86,7 @@ uint8_t dht_receive_data() {
   for (i = 7; i >= 0; i--) {
     retries = 0;
     // There is always a zero on the DHT_PIN port for 50us
-    while (!(PINB & (1 << DHT_PIN))) {
+    while ((PINC & (1 << DHT_PIN)) == 0) {
       _delay_us(DHT11_DELAY_RETRY_US);
       retries += 2;
 
@@ -100,12 +100,12 @@ uint8_t dht_receive_data() {
     if (DHT_State == OK) {
       // Reading the data. 26-28us means a zero, 70us means a one
       _delay_us(DHT11_DELAY_FOR_ZERO);
-      if (PINB & (1 << DHT_PIN)) {
+      if (PINC & (1 << DHT_PIN)) {
         data |= (1 << i);
       }
 
       retries = 0;
-      while (PINB & (1 << DHT_PIN)) {
+      while (PINC & (1 << DHT_PIN)) {
         _delay_us(DHT11_DELAY_RETRY_US);
         retries += 2;
 
@@ -127,9 +127,7 @@ uint8_t dht_receive_data() {
  */
 enum DHT_Status dht_read_raw_data(DHT_Data_t data) {
   uint8_t buffer[5] = {0, 0, 0, 0, 0};
-  uint8_t i;
-  int8_t j;
-  i = j = 0;
+  uint8_t i = 0;
   DHT_State = OK;
 
   if (DHT_State == OK) {
@@ -142,6 +140,9 @@ enum DHT_Status dht_read_raw_data(DHT_Data_t data) {
     // Read 5 bytes of data
     for (i = 0; i < 5; i++) {
       buffer[i] = dht_receive_data();
+      if (DHT_State == TIMEOUT) {
+        i = 5;
+      }
     }
   }
 
